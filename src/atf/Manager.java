@@ -10,14 +10,18 @@ import ibis.deploy.Job;
 import ibis.deploy.JobDescription;
 import ibis.deploy.State;
 import ibis.deploy.StateListener;
-import ibis.deploy.cli.PoolSizePrinter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Manager implements StateListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(Manager.class);
+	
 	private double zeta;
 	private double delta;
 	private int noSampleJobs;
@@ -64,6 +68,8 @@ public class Manager implements StateListener {
 		noSampleJobs = (int) Math.ceil(jobs.size() * zeta_sq
 				/ (zeta_sq + 2 * (jobs.size() - 1) * delta * delta));
 
+		logger.info("number of needed samples: " + noSampleJobs);
+		
 		ApplicationSet workers = new ApplicationSet();
 		File workerLib = new File(System.getProperty("workerlibfile",
 				"worker.jar"));
@@ -81,29 +87,30 @@ public class Manager implements StateListener {
 		}
 
 		for (Cluster cluster : grid.getClusters()) {
-			// for (int i = 0; i < noSampleJobs; i++) {
-			try {
-				JobDescription jd = samplingPhase.createNewJob(worker.getName()
-						+ "-" + cluster.getName());
-				jd.setApplicationName(worker.getName());
-				jd.setClusterName(cluster.getName());
-				jd.setResourceCount(noSampleJobs);
-				jd.setProcessCount(noSampleJobs);
+			for (int i = 0; i < noSampleJobs; i++) {
+				try {
+					JobDescription jd = samplingPhase.createNewJob(worker
+							.getName()
+							+ "-" + i + "-" + cluster.getName());
+					jd.setApplicationName(worker.getName());
+					jd.setClusterName(cluster.getName());
+					jd.setResourceCount(1);
+					jd.setProcessCount(1);
 
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return false;
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return false;
+				}
 			}
-			// }
 		}
 
 		Deploy deploy = null;
 		try {
 			deploy = new Deploy(home, true);
-			deploy.initialize(null);
+			deploy.initialize(grid.getCluster("VU"));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			// TO;DO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -129,8 +136,7 @@ public class Manager implements StateListener {
 				e.printStackTrace();
 			}
 		}
-		 */
-		new PoolSizePrinter(deploy);
+		 */		
 		try {
 			deploy.waitUntilJobsFinished();
 		} catch (Exception e) {

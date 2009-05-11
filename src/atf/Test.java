@@ -11,7 +11,7 @@ public class Test {
 		// TODO Auto-generated method stub
 
 		
-		Manager mng = new Manager(new Task[100]);
+		Manager mng = new Manager(new Task[2]);
 		mng.execute(new File(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]),
 				null);
 		

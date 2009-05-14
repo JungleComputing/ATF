@@ -48,6 +48,7 @@ public class Manager implements StateListener {
 		Experiment samplingPhase = null;
 		try {
 			grid = new Grid(gridFile);
+			grid.removeCluster(grid.getCluster("local"));
 			samplingPhase = new Experiment("SamplingPhase");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
